@@ -1,14 +1,24 @@
 package com.imooc.girl.controller;
 
 import com.imooc.girl.domain.Girl;
+import com.imooc.girl.domain.Result;
 import com.imooc.girl.repository.GirlRepository;
 import com.imooc.girl.service.GirlService;
+import com.imooc.girl.utils.ResultUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
 public class GirlController {
+
+    private final static Logger logger = LoggerFactory.getLogger(GirlController.class);
+
     @Autowired
     private GirlRepository girlRepository;
 
@@ -21,23 +31,26 @@ public class GirlController {
      */
     @GetMapping(value = "/girls")
     public List<Girl> girlList(){
+
+        logger.info("Hello!");
         return girlRepository.findAll();
     }
 
     /**
      * 添加一个女生
-     * @param cupSize
-     * @param age
      * @return
      */
     @PostMapping(value = "/girls")
-    public Girl girlAdd(@RequestParam("cupSize") String cupSize,
-                        @RequestParam("age") Integer age){
-        Girl girl = new Girl();
-        girl.setCupSize(cupSize);
-        girl.setAge(age);
+    public Result<Girl> girlAdd(@Valid Girl girl, BindingResult bindingResult){
+        if(bindingResult.hasErrors()){
+            return null;
+            //return ResultUtil.error(1, bindingResult.getFieldError().getDefaultMessage());
+        }
+        girl.setCupSize(girl.getCupSize());
+        girl.setAge(girl.getAge());
+        girl.setMoney(girl.getMoney());
 
-        return girlRepository.save(girl);
+        return  ResultUtil.success(girlRepository.save(girl));
     }
 
     /**
@@ -86,5 +99,10 @@ public class GirlController {
     @PostMapping("/girls/two")
     public void girlsTwo(){
         girlService.insertTwo();
+    }
+
+    @GetMapping(value = "/girls/getAge/{id}")
+    public void getAge(@PathVariable("id") Integer id) throws Exception{
+        girlService.getAge(id);
     }
 }
